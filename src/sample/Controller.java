@@ -69,6 +69,8 @@ public class Controller {
 
     private void doBrowse2() {
 
+        // SRC: http://fabrice-bouye.developpez.com/tutoriels/javafx/gui-service-tache-de-fond-thread-javafx/
+
         Scene scene = Main.scene;
 
         final Cursor oldCursor = scene.getCursor();
@@ -103,7 +105,7 @@ public class Controller {
                                 while (file == null) {
                                     file = fileChooser.showOpenDialog(Main.primaryStage);
                                 }
-                                
+
                                 final int maxIterations = 1000000;
                                 for (int iterations = 0; iterations < maxIterations; iterations ++) {
                                     System.out.println(iterations);
