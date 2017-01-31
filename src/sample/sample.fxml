@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
@@ -21,5 +22,6 @@
    <children>
       <Button fx:id="button" mnemonicParsing="false" text="Browse" GridPane.columnIndex="1" GridPane.rowIndex="1" />
       <Label fx:id="label" text="File name" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+      <ProgressIndicator fx:id="progressIndicator" visible="false" GridPane.columnIndex="2" GridPane.rowIndex="2" />
    </children>
 </GridPane>

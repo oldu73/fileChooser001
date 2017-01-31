@@ -1,5 +1,6 @@
 package sample;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
@@ -12,10 +13,13 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
+import javafx.util.Duration;
 
 import java.io.File;
+import java.util.concurrent.CountDownLatch;
 
 public class Controller {
 
@@ -25,61 +29,30 @@ public class Controller {
     @FXML
     private Label label;
 
+    @FXML
+    ProgressIndicator progressIndicator;
+
     private File file;
 
     public void initialize() {
 
         System.out.println("Controller initialize..");
 
-        button.setOnAction(event -> doBrowse2());
+        button.setOnAction(event -> doBrowse());
 
     }
 
-    private void doBrowse1() {
+    private void doBrowse() {
 
         // SRC: http://stackoverflow.com/questions/37393642/creating-a-javafx-dialog-inside-a-javafx-task
-        Task<Void> browse = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                Platform.runLater(new Runnable() {
-
-                    @Override
-                    public void run() {
-
-                        FileChooser fileChooser = new FileChooser();
-                        fileChooser.setTitle("Open File");
-
-                        File file = fileChooser.showOpenDialog(Main.primaryStage);
-
-                        label.setText(file.getName());
-
-                    }
-                });
-
-                return null;
-            }
-        };
-
         // SRC: http://stackoverflow.com/questions/13838089/file-chooser-dialog-not-closing
-        Thread th = new Thread(browse);
-        th.setDaemon(true);
-        th.start();
-
-    }
-
-    private void doBrowse2() {
-
         // SRC: http://fabrice-bouye.developpez.com/tutoriels/javafx/gui-service-tache-de-fond-thread-javafx/
+        // SRC: http://stackoverflow.com/questions/16978557/wait-until-platform-runlater-is-executed-using-latch
+        // SRC: http://tutorials.jenkov.com/java-util-concurrent/countdownlatch.html
 
-        Scene scene = Main.scene;
+        final CountDownLatch latch = new CountDownLatch(1);
 
-        final Cursor oldCursor = scene.getCursor();
-        scene.setCursor(Cursor.WAIT);
-
-        System.out.println("1");
-
-        //calculateItem.setDisable(true);
-        //calculateButton.setDisable(true);
+        button.setDisable(true);
 
         final Service<Void> browseService = new Service<Void>() {
 
@@ -90,40 +63,17 @@ public class Controller {
                     @Override
                     protected Void call() throws Exception {
 
-                        Platform.runLater(new Runnable() {
+                        Platform.runLater(() -> {
+                            progressIndicator.setVisible(true);
 
-                            @Override
-                            public void run() {
+                            FileChooser fileChooser = new FileChooser();
+                            fileChooser.setTitle("Open File");
 
-                                System.out.println("2");
+                            File file1 = fileChooser.showOpenDialog(Main.primaryStage);
+                            label.setText(file1.getName());
 
-                                FileChooser fileChooser = new FileChooser();
-                                fileChooser.setTitle("Open File");
-
-                                File file = null;
-
-                                while (file == null) {
-                                    file = fileChooser.showOpenDialog(Main.primaryStage);
-                                }
-
-                                final int maxIterations = 1000000;
-                                for (int iterations = 0; iterations < maxIterations; iterations ++) {
-                                    System.out.println(iterations);
-                                }
-
-                                label.setText(file.getName());
-
-                                System.out.println("3");
-
-                            }
+                            latch.countDown();
                         });
-
-                        /*
-                        final int maxIterations = 1000000;
-                        for (int iterations = 0; iterations < maxIterations; iterations ++) {
-                            System.out.println(iterations);
-                        }
-                        */
 
                         return null;
                     }
@@ -131,24 +81,31 @@ public class Controller {
             }
         };
 
-        browseService.stateProperty().addListener((ObservableValue<? extends Worker.State> observableValue, Worker.State oldValue, Worker.State newValue) -> {
-            switch (newValue) {
-                case FAILED:
-                case CANCELLED:
-                case SUCCEEDED:
-                    scene.setCursor(oldCursor);
-
-                    System.out.println("4");
-
-                    //calculateItem.setDisable(false);
-                    //calculateButton.setDisable(false);
-
-                    break;
-            }
-        });
-
         browseService.start();
 
-    }
+        // asynchronous thread waiting for the process to finish
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
 
+                //System.out.println("Await");
+
+                try {
+                    latch.await();
+                } catch (InterruptedException e) {
+                    //e.printStackTrace();
+                }
+
+                // queuing the done notification into the javafx thread
+
+                Platform.runLater(() -> {
+                    //System.out.println("Done");
+
+                    button.setDisable(false);
+                    progressIndicator.setVisible(false);
+                });
+            }
+        }).start();
+
+    }
 }

@@ -10,8 +10,6 @@ public class Main extends Application {
 
     public static Stage primaryStage;   // Static reference to primaryStage
 
-    public static Scene scene;
-
     @Override
     public void start(Stage primaryStage) throws Exception{
 
@@ -20,9 +18,7 @@ public class Main extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         primaryStage.setTitle("Hello World");
 
-        scene = new Scene(root, 300, 275);
-
-        primaryStage.setScene(scene);
+        primaryStage.setScene(new Scene(root, 300, 275));
         primaryStage.show();
     }
 
