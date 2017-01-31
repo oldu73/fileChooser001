@@ -83,28 +83,28 @@ public class Controller {
 
         browseService.start();
 
-        // asynchronous thread waiting for the process to finish
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+        // asynchronous thread waiting for the process (browseService) to finish
+        new Thread(() -> {
 
-                //System.out.println("Await");
+            // debug mode
+            //System.out.println("Await");
 
-                try {
-                    latch.await();
-                } catch (InterruptedException e) {
-                    //e.printStackTrace();
-                }
-
-                // queuing the done notification into the javafx thread
-
-                Platform.runLater(() -> {
-                    //System.out.println("Done");
-
-                    button.setDisable(false);
-                    progressIndicator.setVisible(false);
-                });
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                //e.printStackTrace();
             }
+
+            // queuing the done notification into the javafx thread
+
+            Platform.runLater(() -> {
+
+                // debug mode
+                //System.out.println("Done");
+
+                button.setDisable(false);
+                progressIndicator.setVisible(false);
+            });
         }).start();
 
     }
